@@ -1,28 +1,28 @@
-from langchain_openai.chat_models import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
+from llm_factory import LLMFactory
 
-# both `template` and `model` can be reused many times
+
+llm = LLMFactory.get_llm("qwen-plus")
+# llm = LLMFactory.get_llm("kimi-k2")
 
 template = ChatPromptTemplate.from_messages(
     [
         (
             "system",
-            'Answer the question based on the context below. If the question cannot be answered using the information provided, answer with "I don\'t know".',
+            '根据用户提供的信息回答。如果无法根据提供的信息回答问题，请回答“我不知道".',
         ),
         ("human", "Context: {context}"),
         ("human", "Question: {question}"),
     ]
 )
-
-model = ChatOpenAI()
-
-# `prompt` and `completion` are the results of using template and model once
-
 prompt = template.invoke(
     {
-        "context": "The most recent advancements in NLP are being driven by Large Language Models (LLMs). These models outperform their smaller counterparts and have become invaluable for developers who are creating applications with NLP capabilities. Developers can tap into these models through Hugging Face's `transformers` library, or by utilizing OpenAI and Cohere's offerings through the `openai` and `cohere` libraries, respectively.",
-        "question": "Which model providers offer LLMs?",
+        "context": "NLP 领域的最新进展由大型语言模型 (LLM) 推动。这些模型的性能远超小型模型，对于开发具有 NLP 功能的应用程序的开发者来说，它们的价值无可估量。开发者可以通过 Hugging Face 的“transformers”库来利用这些模型，也可以分别通过“openai”和“cohere”库利用 OpenAI 和 Cohere 的产品.",
+        "question": "哪些模型提供商提供法学硕士学位?",
     }
 )
 
-print(model.invoke(prompt))
+response = llm.stream(prompt)
+print("模型回答：")
+for chunk in response:
+    print(chunk.content, end="", flush=True)

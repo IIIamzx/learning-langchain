@@ -1,4 +1,7 @@
 from langchain_core.prompts import ChatPromptTemplate
+from llm_factory import LLMFactory
+
+llm = LLMFactory.get_llm("kimi-k2")
 
 template = ChatPromptTemplate.from_messages(
     [

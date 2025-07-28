@@ -1,6 +1,7 @@
 from langchain_openai.chat_models import ChatOpenAI
+from llm_factory import LLMFactory
 
-model = ChatOpenAI(model="gpt-3.5-turbo")
+model = LLMFactory.get_llm("qwen-plus")
 
 completion = model.invoke("Hi there!")
 # Hi!
