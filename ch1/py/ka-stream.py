@@ -1,9 +1,8 @@
 from langchain_core.runnables import chain
-from langchain_openai.chat_models import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
+from llm_factory import LLMFactory
 
-
-model = ChatOpenAI(model="gpt-3.5-turbo")
+model = LLMFactory.get_llm("qwen-plus")
 
 
 template = ChatPromptTemplate.from_messages(
@@ -21,5 +20,5 @@ def chatbot(values):
         yield token
 
 
-for part in chatbot.stream({"question": "Which model providers offer LLMs?"}):
+for part in chatbot.stream({"question": "where is capital of China ? "}):
     print(part)

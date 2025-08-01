@@ -1,4 +1,4 @@
-from langchain_openai.chat_models import ChatOpenAI
+from llm_factory import LLMFactory
 from langchain_core.prompts import ChatPromptTemplate
 
 # the building blocks
@@ -10,7 +10,7 @@ template = ChatPromptTemplate.from_messages(
     ]
 )
 
-model = ChatOpenAI()
+model = LLMFactory.get_llm("qwen-plus")
 
 # combine them with the | operator
 
@@ -18,10 +18,10 @@ chatbot = template | model
 
 # use it
 
-response = chatbot.invoke({"question": "Which model providers offer LLMs?"})
+response = chatbot.invoke({"question": "你是谁?"})
 print(response.content)
 
 # streaming
 
-for part in chatbot.stream({"question": "Which model providers offer LLMs?"}):
+for part in chatbot.stream({"question": "你是谁?"}):
     print(part)
