@@ -1,0 +1,548 @@
+=================================================
+DeepEval 框架预定义 Metric 完整参考手册
+=================================================
+更新时间: 2025年1月
+版本: DeepEval 3.2.3+
+
+=================================================
+目录
+=================================================
+1. 自定义指标 (Custom Metrics)
+2. RAG 检索增强生成指标 (RAG Metrics)
+3. 智能体指标 (Agentic Metrics)
+4. 对话指标 (Conversational Metrics)
+5. 通用安全指标 (Safety Metrics)
+6. 多模态指标 (Multimodal Metrics)
+7. 通用参数说明
+8. 使用示例
+
+=================================================
+1. 自定义指标 (Custom Metrics)
+=================================================
+
+1.1 G-Eval
+-----------
+描述: 基于GPT的通用评估指标，可自定义评估标准
+参数:
+  - name (str): 指标名称
+  - criteria (str): 评估标准描述
+  - evaluation_params (List[LLMTestCaseParams]): 评估参数列表
+  - threshold (float): 成功阈值，默认0.5
+  - model (DeepEvalBaseLLM): 评估模型
+  - strict_mode (bool): 严格模式，默认False
+  - async_mode (bool): 异步模式，默认True
+  - verbose_mode (bool): 详细模式，默认False
+
+必需输入: 根据evaluation_params而定，常见组合:
+  - input (str): 输入问题
+  - actual_output (str): 实际输出
+  - expected_output (str): 期望输出
+
+使用场景: 自定义评估标准，如正确性、相关性、创造性等
+
+1.2 DAG (Deep Acyclic Graph)
+----------------------------
+描述: 基于决策树的LLM评估指标，提供更确定性的评估
+参数:
+  - name (str): 指标名称
+  - criteria (str): 评估标准
+  - threshold (float): 成功阈值
+  - model (DeepEvalBaseLLM): 评估模型
+  - strict_mode (bool): 严格模式
+  - async_mode (bool): 异步模式
+
+必需输入: 根据决策逻辑而定
+
+使用场景: 需要客观、确定性评估的场景，如格式正确性
+
+1.3 Arena G-Eval
+----------------
+描述: 用于成对比较的评估指标
+参数:
+  - criteria (str): 比较标准
+  - model (DeepEvalBaseLLM): 评估模型
+  - async_mode (bool): 异步模式
+
+必需输入:
+  - input (str): 输入问题
+  - actual_output_a (str): 第一个输出
+  - actual_output_b (str): 第二个输出
+
+使用场景: A/B测试，模型输出对比
+
+=================================================
+2. RAG 检索增强生成指标 (RAG Metrics)
+=================================================
+
+2.1 AnswerRelevancyMetric
+-------------------------
+描述: 评估答案与问题的相关性
+参数:
+  - threshold (float): 成功阈值，默认0.5
+  - model (DeepEvalBaseLLM): 评估模型
+  - async_mode (bool): 异步模式，默认True
+  - strict_mode (bool): 严格模式，默认False
+  - verbose_mode (bool): 详细模式，默认False
+  - evaluation_template: 自定义评估模板
+
+必需输入:
+  - input (str): 输入问题
+  - actual_output (str): 实际输出
+
+可选输入:
+  - retrieval_context (List[str]): 检索上下文
+
+评分范围: 0-1 (1表示完全相关)
+
+2.2 FaithfulnessMetric
+-----------------------
+描述: 评估生成内容对检索上下文的忠实性，检测幻觉
+参数:
+  - threshold (float): 成功阈值，默认0.5
+  - model (DeepEvalBaseLLM): 评估模型
+  - async_mode (bool): 异步模式，默认True
+  - strict_mode (bool): 严格模式，默认False
+  - verbose_mode (bool): 详细模式，默认False
+
+必需输入:
+  - input (str): 输入问题
+  - actual_output (str): 实际输出
+  - retrieval_context (List[str]): 检索上下文 ⚠️必需
+
+评分范围: 0-1 (1表示完全忠实)
+
+2.3 ContextualRelevancyMetric
+-----------------------------
+描述: 评估检索上下文与问题的相关性
+参数:
+  - threshold (float): 成功阈值，默认0.5
+  - model (DeepEvalBaseLLM): 评估模型
+  - async_mode (bool): 异步模式，默认True
+  - strict_mode (bool): 严格模式，默认False
+  - verbose_mode (bool): 详细模式，默认False
+
+必需输入:
+  - input (str): 输入问题
+  - retrieval_context (List[str]): 检索上下文
+
+评分范围: 0-1 (1表示完全相关)
+
+2.4 ContextualPrecisionMetric
+-----------------------------
+描述: 评估检索上下文的精确性，是否包含无关信息
+参数:
+  - threshold (float): 成功阈值，默认0.5
+  - model (DeepEvalBaseLLM): 评估模型
+  - async_mode (bool): 异步模式，默认True
+  - strict_mode (bool): 严格模式，默认False
+  - verbose_mode (bool): 详细模式，默认False
+
+必需输入:
+  - input (str): 输入问题
+  - actual_output (str): 实际输出
+  - expected_output (str): 期望输出
+  - retrieval_context (List[str]): 检索上下文
+
+评分范围: 0-1 (1表示完全精确)
+
+2.5 ContextualRecallMetric
+---------------------------
+描述: 评估检索上下文的召回率，是否遗漏重要信息
+参数:
+  - threshold (float): 成功阈值，默认0.5
+  - model (DeepEvalBaseLLM): 评估模型
+  - async_mode (bool): 异步模式，默认True
+  - strict_mode (bool): 严格模式，默认False
+  - verbose_mode (bool): 详细模式，默认False
+
+必需输入:
+  - input (str): 输入问题
+  - expected_output (str): 期望输出
+  - retrieval_context (List[str]): 检索上下文
+
+评分范围: 0-1 (1表示完全召回)
+
+=================================================
+3. 智能体指标 (Agentic Metrics)
+=================================================
+
+3.1 TaskCompletionMetric
+------------------------
+描述: 评估智能体任务完成度
+参数:
+  - threshold (float): 成功阈值，默认0.5
+  - model (DeepEvalBaseLLM): 评估模型
+  - async_mode (bool): 异步模式，默认True
+  - strict_mode (bool): 严格模式，默认False
+  - verbose_mode (bool): 详细模式，默认False
+
+必需输入:
+  - input (str): 任务描述
+  - actual_output (str): 实际执行结果
+  - expected_output (str): 期望结果
+
+评分范围: 0-1 (1表示完全完成)
+
+3.2 ToolCorrectnessMetric
+-------------------------
+描述: 评估智能体工具使用的正确性
+参数:
+  - threshold (float): 成功阈值，默认0.5
+  - model (DeepEvalBaseLLM): 评估模型
+  - async_mode (bool): 异步模式，默认True
+  - strict_mode (bool): 严格模式，默认False
+  - verbose_mode (bool): 详细模式，默认False
+
+必需输入:
+  - input (str): 输入问题
+  - actual_output (str): 实际输出
+  - expected_tools (List[str]): 期望使用的工具列表
+
+评分范围: 0-1 (1表示工具使用完全正确)
+
+=================================================
+4. 对话指标 (Conversational Metrics)
+=================================================
+
+4.1 ConversationalGEval
+-----------------------
+描述: 对话系统的G-Eval评估
+参数:
+  - name (str): 指标名称
+  - criteria (str): 评估标准
+  - evaluation_params (List): 评估参数
+  - threshold (float): 成功阈值
+  - model (DeepEvalBaseLLM): 评估模型
+
+必需输入:
+  - conversation_history (List): 对话历史
+
+4.2 KnowledgeRetentionMetric
+----------------------------
+描述: 评估对话中的知识保持能力
+参数:
+  - threshold (float): 成功阈值，默认0.5
+  - model (DeepEvalBaseLLM): 评估模型
+  - async_mode (bool): 异步模式，默认True
+  - strict_mode (bool): 严格模式，默认False
+  - verbose_mode (bool): 详细模式，默认False
+
+必需输入:
+  - conversation_history (List): 对话历史
+  - knowledge_points (List[str]): 关键知识点
+
+4.3 RoleAdherenceMetric
+-----------------------
+描述: 评估对话中的角色一致性
+参数:
+  - threshold (float): 成功阈值，默认0.5
+  - model (DeepEvalBaseLLM): 评估模型
+  - async_mode (bool): 异步模式，默认True
+  - strict_mode (bool): 严格模式，默认False
+  - verbose_mode (bool): 详细模式，默认False
+
+必需输入:
+  - role_definition (str): 角色定义
+  - conversation_content (str): 对话内容
+
+4.4 ConversationCompletenessMetric
+----------------------------------
+描述: 评估对话的完整性
+参数:
+  - threshold (float): 成功阈值，默认0.5
+  - model (DeepEvalBaseLLM): 评估模型
+  - async_mode (bool): 异步模式，默认True
+  - strict_mode (bool): 严格模式，默认False
+  - verbose_mode (bool): 详细模式，默认False
+
+必需输入:
+  - conversation_goal (str): 对话目标
+  - actual_conversation (List): 实际对话
+
+4.5 ConversationRelevancyMetric
+-------------------------------
+描述: 评估对话的相关性
+参数:
+  - threshold (float): 成功阈值，默认0.5
+  - model (DeepEvalBaseLLM): 评估模型
+  - async_mode (bool): 异步模式，默认True
+  - strict_mode (bool): 严格模式，默认False
+  - verbose_mode (bool): 详细模式，默认False
+
+必需输入:
+  - conversation_topic (str): 对话主题
+  - actual_conversation (List): 实际对话
+
+=================================================
+5. 通用安全指标 (Safety Metrics)
+=================================================
+
+5.1 HallucinationMetric
+-----------------------
+描述: 检测幻觉或虚假信息
+参数:
+  - threshold (float): 成功阈值，默认0.3 (注意：低于阈值表示通过)
+  - model (DeepEvalBaseLLM): 评估模型
+  - async_mode (bool): 异步模式，默认True
+  - strict_mode (bool): 严格模式，默认False
+  - verbose_mode (bool): 详细模式，默认False
+
+必需输入:
+  - actual_output (str): 实际输出
+  - context (List[str]): 上下文信息
+
+评分范围: 0-1 (0表示无幻觉，1表示完全幻觉)
+
+5.2 BiasMetric
+--------------
+描述: 检测偏见和歧视性内容
+参数:
+  - threshold (float): 成功阈值，默认0.5
+  - model (DeepEvalBaseLLM): 评估模型
+  - async_mode (bool): 异步模式，默认True
+  - strict_mode (bool): 严格模式，默认False
+  - verbose_mode (bool): 详细模式，默认False
+
+必需输入:
+  - actual_output (str): 实际输出
+
+评分范围: 0-1 (0表示无偏见，1表示高度偏见)
+
+5.3 ToxicityMetric
+------------------
+描述: 检测有毒、有害内容
+参数:
+  - threshold (float): 成功阈值，默认0.5
+  - model (DeepEvalBaseLLM): 评估模型
+  - async_mode (bool): 异步模式，默认True
+  - strict_mode (bool): 严格模式，默认False
+  - verbose_mode (bool): 详细模式，默认False
+
+必需输入:
+  - actual_output (str): 实际输出
+
+评分范围: 0-1 (0表示无毒性，1表示高毒性)
+
+=================================================
+6. 其他专用指标 (Specialized Metrics)
+=================================================
+
+6.1 SummarizationMetric
+-----------------------
+描述: 评估摘要质量
+参数:
+  - threshold (float): 成功阈值，默认0.5
+  - model (DeepEvalBaseLLM): 评估模型
+  - async_mode (bool): 异步模式，默认True
+  - strict_mode (bool): 严格模式，默认False
+  - verbose_mode (bool): 详细模式，默认False
+
+必需输入:
+  - input (str): 原始文本
+  - actual_output (str): 生成的摘要
+  - expected_output (str): 期望的摘要
+
+6.2 PromptAlignmentMetric
+-------------------------
+描述: 评估输出与提示的对齐度
+参数:
+  - threshold (float): 成功阈值，默认0.5
+  - model (DeepEvalBaseLLM): 评估模型
+  - async_mode (bool): 异步模式，默认True
+  - strict_mode (bool): 严格模式，默认False
+  - verbose_mode (bool): 详细模式，默认False
+
+必需输入:
+  - input (str): 提示/指令
+  - actual_output (str): 实际输出
+
+6.3 JsonCorrectnessMetric
+-------------------------
+描述: 验证JSON格式的正确性
+参数:
+  - threshold (float): 成功阈值，默认1.0
+  - async_mode (bool): 异步模式，默认True
+  - strict_mode (bool): 严格模式，默认False
+  - verbose_mode (bool): 详细模式，默认False
+
+必需输入:
+  - actual_output (str): 实际JSON输出
+  - expected_schema (dict): 期望的JSON模式
+
+6.4 RagasMetric
+---------------
+描述: 集成RAGAS框架的指标
+参数: 根据具体RAGAS指标而定
+必需输入: 根据选择的RAGAS指标而定
+
+=================================================
+7. 通用参数说明
+=================================================
+
+7.1 所有指标的通用参数
+---------------------
+- threshold (float): 成功阈值，范围0-1，默认0.5
+- model (DeepEvalBaseLLM): 用于评估的LLM模型
+- async_mode (bool): 是否异步执行，默认True
+- strict_mode (bool): 严格模式，输出二进制分数(0或1)，默认False
+- verbose_mode (bool): 详细模式，打印调试信息，默认False
+- evaluation_template: 自定义评估模板类
+
+7.2 LLMTestCase 常用参数
+-----------------------
+- input (str): 输入问题/提示 [必需]
+- actual_output (str): 模型实际输出 [必需]
+- expected_output (str): 期望输出 [部分指标需要]
+- retrieval_context (List[str]): 检索上下文 [RAG指标需要]
+- context (List[str]): 一般上下文信息 [部分指标需要]
+- conversation_history (List): 对话历史 [对话指标需要]
+
+7.3 评分解释
+-----------
+- 所有指标输出分数范围: 0-1
+- 分数 >= threshold: 测试通过 ✅
+- 分数 < threshold: 测试失败 ❌
+- 特殊情况: HallucinationMetric, BiasMetric, ToxicityMetric 分数越低越好
+
+=================================================
+8. 使用示例
+=================================================
+
+8.1 基础G-Eval示例
+------------------
+```python
+from deepeval.metrics import GEval
+from deepeval.test_case import LLMTestCase, LLMTestCaseParams
+
+# 创建正确性评估指标
+correctness_metric = GEval(
+    name="Correctness",
+    criteria="判断实际输出是否基于期望输出是正确的",
+    evaluation_params=[
+        LLMTestCaseParams.ACTUAL_OUTPUT, 
+        LLMTestCaseParams.EXPECTED_OUTPUT
+    ],
+    threshold=0.7
+)
+
+# 创建测试用例
+test_case = LLMTestCase(
+    input="什么是劳动合同？",
+    actual_output="劳动合同是用人单位与劳动者建立劳动关系的协议",
+    expected_output="劳动合同是用人单位与劳动者建立劳动关系、明确双方权利义务的协议"
+)
+
+# 执行评估
+correctness_metric.measure(test_case)
+print(f"得分: {correctness_metric.score}")
+print(f"是否通过: {correctness_metric.is_successful()}")
+print(f"原因: {correctness_metric.reason}")
+```
+
+8.2 RAG评估示例
+---------------
+```python
+from deepeval.metrics import AnswerRelevancyMetric, FaithfulnessMetric
+from deepeval.test_case import LLMTestCase
+
+# 创建RAG指标
+answer_relevancy = AnswerRelevancyMetric(threshold=0.7)
+faithfulness = FaithfulnessMetric(threshold=0.7)
+
+# 创建包含检索上下文的测试用例
+test_case = LLMTestCase(
+    input="劳动合同的主要条款有哪些？",
+    actual_output="劳动合同应包含工作内容、工作地点、工作时间、劳动报酬等条款",
+    retrieval_context=[
+        "《劳动合同法》规定劳动合同应包含工作内容、工作地点、工作时间、劳动报酬、社会保险等条款",
+        "劳动合同是用人单位与劳动者建立劳动关系的重要文件"
+    ]
+)
+
+# 批量评估
+from deepeval import evaluate
+results = evaluate([test_case], [answer_relevancy, faithfulness])
+```
+
+8.3 自定义模型示例
+------------------
+```python
+from deepeval.models.base_model import DeepEvalBaseLLM
+import openai
+
+class CustomModel(DeepEvalBaseLLM):
+    def __init__(self, model_name: str):
+        self.model_name = model_name
+        self.client = openai.OpenAI()
+    
+    def load_model(self):
+        return self.client
+    
+    def generate(self, prompt: str) -> str:
+        response = self.client.chat.completions.create(
+            model=self.model_name,
+            messages=[{"role": "user", "content": prompt}]
+        )
+        return response.choices[0].message.content
+    
+    async def a_generate(self, prompt: str) -> str:
+        return self.generate(prompt)
+    
+    def get_model_name(self):
+        return self.model_name
+
+# 使用自定义模型
+custom_model = CustomModel("gpt-4")
+metric = AnswerRelevancyMetric(model=custom_model, threshold=0.8)
+```
+
+=================================================
+9. 最佳实践建议
+=================================================
+
+9.1 指标选择建议
+----------------
+- RAG系统: 专注于 AnswerRelevancyMetric + FaithfulnessMetric
+- 智能体系统: 使用 TaskCompletionMetric + ToolCorrectnessMetric  
+- 对话系统: 使用 ConversationCompletenessMetric + RoleAdherenceMetric
+- 安全性评估: 结合 HallucinationMetric + BiasMetric + ToxicityMetric
+- 限制指标数量: 每次评估不超过5个指标
+
+9.2 阈值设置建议
+----------------
+- 高质量要求: threshold = 0.8-0.9
+- 一般质量要求: threshold = 0.6-0.7  
+- 宽松质量要求: threshold = 0.4-0.5
+- 安全性指标: 建议使用较低阈值 (0.2-0.3)
+
+9.3 性能优化建议
+----------------
+- 启用 async_mode=True 提高并发性能
+- 使用本地模型减少API调用成本
+- 合理设置batch_size进行批量评估
+- 启用缓存机制避免重复计算
+
+=================================================
+10. 常见问题解答
+=================================================
+
+Q: FaithfulnessMetric 报错 retrieval_context 不能为 None？
+A: FaithfulnessMetric 必须提供 retrieval_context 参数，这是评估忠实性的基础
+
+Q: 如何处理中文评估？
+A: DeepEval 支持多语言，确保你的模型支持中文，并在 criteria 中使用中文描述
+
+Q: 评估速度很慢怎么办？
+A: 1) 启用 async_mode=True 2) 使用更快的模型 3) 减少评估指标数量
+
+Q: 如何自定义评估模板？
+A: 继承对应的Template类，重写方法，然后通过evaluation_template参数传入
+
+Q: 分数一直很低怎么办？
+A: 1) 检查阈值设置 2) 查看 reason 了解具体原因 3) 启用 verbose_mode 查看详细日志
+
+=================================================
+文档结束
+=================================================
+更多信息请参考官方文档: https://docs.deepeval.com/
+GitHub: https://github.com/confident-ai/deepeval 
